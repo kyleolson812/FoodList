@@ -1,4 +1,3 @@
-// components/FoodList.tsx
 import React from 'react';
 import {
   View,
@@ -8,54 +7,22 @@ import {
   FlatList,
   SafeAreaView,
 } from 'react-native';
-import {useFoodContext} from './FoodContext';
 
-interface Food {
-  name: string;
-  description: string;
-}
+import FoodItemTCA from './FoodItemTCA';
 
-export type FoodType = {
-  item: {
-    name: string;
-    description: string;
-  };
-  index: number;
-  onDelete: (index: number) => void;
-};
+import {useFoodContext, Food} from './FoodContext';
 
-function FoodItemTCA(props: FoodType) {
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 8,
-      }}>
-      <Text>{`${props.item.name} - ${props.item.description}`}</Text>
-      <Button title="Delete" onPress={() => props.onDelete(props.index)} />
-    </View>
-  );
-}
-
+// The list that displays the food if the user has created foods.
 export const FoodListTCA: React.FC = () => {
   const {state, dispatch} = useFoodContext();
-  const [newFood, setNewFood] = React.useState({name: '', description: ''});
 
-  const addFood = () => {
-    if (newFood.name.trim() !== '') {
-      dispatch({type: 'ADD_FOOD', payload: newFood});
-      setNewFood({name: '', description: ''});
-    }
-  };
-
-  const deleteFood = (index: number) => {
-    dispatch({type: 'DELETE_FOOD', payload: index});
-  };
-
+  // The row passed into the FlatList
   const renderItem = ({item, index}: {item: Food; index: number}) => (
-    <FoodItemTCA item={item} index={index} onDelete={deleteFood} />
+    <FoodItemTCA
+      item={item}
+      index={index}
+      onDelete={index => dispatch({type: 'DELETE_FOOD', payload: index})}
+    />
   );
 
   return (
@@ -66,11 +33,21 @@ export const FoodListTCA: React.FC = () => {
         </Text>
         <TextInput
           placeholder="Food Name"
-          value={newFood.name}
-          onChangeText={text => setNewFood({...newFood, name: text})}
+          value={state.newFoodName}
+          onChangeText={text =>
+            dispatch({type: 'NEW_FOOD_NAME_CHANGED', payload: text})
+          }
           style={{marginBottom: 8, padding: 8, borderWidth: 1}}
         />
-        <Button title="Add Food" onPress={addFood} />
+        <TextInput
+          placeholder="Food Description"
+          value={state.newFoodDescription}
+          onChangeText={text =>
+            dispatch({type: 'NEW_FOOD_DESCRIPTION_CHANGED', payload: text})
+          }
+          style={{marginBottom: 8, padding: 8, borderWidth: 1}}
+        />
+        <Button title="Add Food" onPress={() => dispatch({type: 'ADD_FOOD'})} />
         <FlatList
           data={state.foods}
           keyExtractor={(item, index) => `${item.name}-${index}`}
